@@ -1,0 +1,44 @@
+id: uk.co.agilemde.MathOCL
+runtime: org.freedesktop.Platform
+runtime-version: '23.08'
+sdk: org.freedesktop.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.openjdk17
+command: mathocl
+finish-args:
+  - --socket=x11
+  - --share=network
+  - --filesystem=host
+
+modules:
+  - name: openjdk
+    buildsystem: simple
+    build-commands:
+      - /usr/lib/sdk/openjdk17/install.sh
+
+  - name: mathocl
+    buildsystem: simple
+    sources:
+      - type: git
+        url: https://github.com/eclipse/agileuml/
+        tag: v2.2
+        commit: 4b98c9184e1c15756a1350a13be4e9e4df795bd0
+        x-checker-data:
+          type: git
+          tag-pattern: ^v\\d([.\\d]+)$
+
+      - type: file
+        path: MathOCLManifest.txt
+      
+      - type: script
+        dest-filename: mathocl
+        commands:
+          - export APPDATA="$XDG_DATA_HOME"
+          - export PATH="/app/jre/bin:$PATH"
+          - java -jar /app/bin/mathapp.jar "$@"
+    
+    build-commands:
+      - "jar cvmf MathOCLManifest.txt mathapp.jar *"
+      - "chmod +x mathapp.jar"
+      - "install -D -m755 mathapp.jar /app/bin/mathapp.jar"
+      - "install -D -m755 mathocl /app/bin/mathocl"
